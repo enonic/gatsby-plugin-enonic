@@ -1,0 +1,32 @@
+{
+  "name": "gatsby-plugin-enonic",
+  "version": "0.1.0",
+  "description": "Gatsby plugin which creates pages for headless content from Enonic XP",
+  "author": "Alan Semenov <alan.semenov@gmail.com>",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/enonic/gatsby-plugin-enonic.git"
+  },
+  "bugs": {
+    "url": "https://github.com/enonic/gatsby-plugin-enonic/issues"
+  },
+  "dependencies": {
+    "gatsby-source-graphql": "^2.1.33"
+  },
+  "devDependencies": {
+    "lodash": "^4.17.15",
+    "gatsby": "^2.19.7"
+  },
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "keywords": [
+    "gatsby",
+    "gatsby-plugin",
+    "enonic",
+    "enonic xp",
+    "headless"
+  ],
+  "license": "Apache-2.0"
+}
