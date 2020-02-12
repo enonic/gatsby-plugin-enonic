@@ -12,11 +12,11 @@
     "url": "https://github.com/enonic/gatsby-plugin-enonic/issues"
   },
   "dependencies": {
-    "gatsby-source-graphql": "^2.1.33"
+    "gatsby-source-graphql": "^2.1.33",
+    "lodash": "^4.17.15"
   },
-  "devDependencies": {
-    "lodash": "^4.17.15",
-    "gatsby": "^2.19.7"
+  "peerDependencies": {
+    "gatsby": "^2.0.15"
   },
   "engines": {
     "node": ">=8.0.0"
@@ -28,5 +28,8 @@
     "enonic xp",
     "headless"
   ],
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
 }
