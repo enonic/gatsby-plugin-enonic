@@ -12,6 +12,7 @@
     "url": "https://github.com/enonic/gatsby-plugin-enonic/issues"
   },
   "dependencies": {
+    "app-root-path": "^3.0.0",
     "gatsby-source-graphql": "^2.1.33",
     "lodash": "^4.17.15"
   },

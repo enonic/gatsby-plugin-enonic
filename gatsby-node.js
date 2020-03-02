@@ -1,4 +1,5 @@
-const _ = require(`lodash`)
+const _ = require(`lodash`);
+const appRoot = require('app-root-path');
 const gatsbySourceGraphQLNode = require(`gatsby-source-graphql/gatsby-node`);
 
 const schemaName = 'XP';
@@ -81,7 +82,8 @@ const getContentTypes = async (graphql, reporter) => {
 }
 
 const createCustomPages = async (graphql, createPage, reporter, pageDef, schemaTypes) => {
-    const query = await processTypesInQuery(pageDef.query, schemaTypes);
+    const queryTemplate = require(appRoot + pageDef.query);
+    const query = await processTypesInQuery(queryTemplate, schemaTypes);
     const result = await graphql(
     `{
       xp {
