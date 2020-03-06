@@ -41,29 +41,7 @@ module.exports = {
             template: require.resolve("./src/templates/movie.js"),
             key: 'name'
           },
-          query: `
-            getChildren(key: "\${site}/movies", first: 100) {
-              name: _name
-              id: _id
-              displayName
-              ... on com_enonic_headless_Movie {
-                data {
-                  subtitle
-                  release
-                  abstract
-                  trailer
-                  photos {
-                    ... on media_Image {
-                      url_w800: imageUrl(type: absolute, scale: "width(800)")
-                      attachments {
-                        name
-                      }
-                    }  
-                  }
-                }
-              }
-            }
-          `
+          query: '/src/queries/getMovies'
         }]
       }
     }
@@ -73,7 +51,7 @@ module.exports = {
 
 * `url` - GraphQL API endpoint of the Headless starter
 * `refetchInterval` - how often data is reloaded (in seconds)
-* `pages.query` - GraphQL query to retrieve nodes which will be listed on the `pages.list.path` page
+* `pages.query` - path to a JS file which exports (via `module.exports`) a GraphQL query to retrieve nodes to be listed on the `pages.list.path` page
 * `pages.list.path` - expected path for the generated listing page, for example if you use `movies` the page will be available under `mysite.com/movies`
 * `pages.list.template` - template for the listing page
 * `pages.details.path` - expected path for the generated details page, for example if you use `movie` the page will be available under `mysite.com/movie/{key}` (if omitted, value from `pages.list.path` will be used)
