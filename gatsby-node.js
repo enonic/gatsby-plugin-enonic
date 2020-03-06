@@ -6,12 +6,12 @@ const schemaName = 'XP';
 const schemaPrefix = `${schemaName}_`;
 
 exports.sourceNodes = async (
-    utils,
-    {
-        typeName = schemaName,
-        fieldName = schemaName.toLowerCase(),
-        ...options
-    }
+  utils,
+  {
+      typeName = schemaName,
+      fieldName = schemaName.toLowerCase(),
+      ...options
+  }
 ) => {
     const { url, refetchInterval } = options;
 
@@ -29,7 +29,9 @@ exports.sourceNodes = async (
 
 // Create Pages
 exports.createPages = async ({ graphql, actions, reporter }, options) => {
-    const { application = `${application}_`.replace('.', '_'), pages } = options;
+    const { application, pages } = options;
+
+    const appId = `${application}_`.replace(/\./g, '_');
 
     if (!pages) {
         throw new Error(`gatsby-plugin-enonic requires at least one page definition to be specified (\`options.pages\`)`);
@@ -39,15 +41,15 @@ exports.createPages = async ({ graphql, actions, reporter }, options) => {
     const schemaTypes = await getContentTypes(graphql, reporter);
 
     return await Promise.all(
-        pages.map(async pageDef =>
-            await createCustomPages(graphql, createPage, reporter, pageDef, schemaTypes, application)
-        )
+      pages.map(async pageDef =>
+        await createCustomPages(graphql, createPage, reporter, pageDef, schemaTypes, appId)
+      )
     )
 };
 
 const processTypesInQuery = async (query, types) => {
     types.forEach(type => {
-        query = query.replace(` on ${type}`, ` on ${schemaPrefix}${type}`)
+        query = query.replace(new RegExp(` on ${type}`, 'g'), ` on ${schemaPrefix}${type}`);
     });
 
     return query;
@@ -68,7 +70,7 @@ const getContentTypes = async (graphql, reporter) => {
     );
 
     if (result.errors) {
-        reporter.panic(result.errors)
+        reporter.panic(result.errors);
     }
 
     const contentInterface = result.data.__schema.types.filter(type => type.name === `${schemaPrefix}Content`)[0];
@@ -81,13 +83,13 @@ const getContentTypes = async (graphql, reporter) => {
 };
 
 const sanitizeTemplate = (queryTemplate, application) => {
-    return queryTemplate.replace('{application}', application);
+    return queryTemplate.replace(/{application}/, application);
 };
 
 const createCustomPages = async (graphql, createPage, reporter, pageDef, schemaTypes, application) => {
     const queryTemplate = require(appRoot + pageDef.query);
     const sanitizedTemplate = application ? sanitizeTemplate(queryTemplate, application) : queryTemplate;
-    const query = processTypesInQuery(sanitizedTemplate, schemaTypes);
+    const query = await processTypesInQuery(sanitizedTemplate, schemaTypes);
     const result = await graphql(
     `{
       xp {
@@ -99,7 +101,7 @@ const createCustomPages = async (graphql, createPage, reporter, pageDef, schemaT
     );
 
     if (result.errors) {
-        reporter.panic(result.errors)
+        reporter.panic(result.errors);
     }
 
     const nodes = result.data.xp.guillotine.nodes;
