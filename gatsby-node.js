@@ -31,8 +31,6 @@ exports.sourceNodes = async (
 exports.createPages = async ({ graphql, actions, reporter }, options) => {
     const { application, pages } = options;
 
-    const appId = `${application}_`.replace(/\./g, '_');
-
     if (!pages) {
         throw new Error(`gatsby-plugin-enonic requires at least one page definition to be specified (\`options.pages\`)`);
     }
@@ -42,7 +40,7 @@ exports.createPages = async ({ graphql, actions, reporter }, options) => {
 
     return await Promise.all(
       pages.map(async pageDef =>
-        await createCustomPages(graphql, createPage, reporter, pageDef, schemaTypes, appId)
+        await createCustomPages(graphql, createPage, reporter, pageDef, schemaTypes, application)
       )
     )
 };
@@ -83,7 +81,12 @@ const getContentTypes = async (graphql, reporter) => {
 };
 
 const sanitizeTemplate = (queryTemplate, application) => {
-    return queryTemplate.replace(/{application}/, application);
+    const _app = `${application}_`.replace(/\./g, '_');
+
+    let result = queryTemplate.replace(/{application}_/, _app); // Replace "{application}_" with "com_example_myproject_"
+    result = result.replace(/{application}/, application);      // Replace "{application}" with "com.example.myproject"
+
+    return result;
 };
 
 const createCustomPages = async (graphql, createPage, reporter, pageDef, schemaTypes, application) => {
