@@ -29,19 +29,22 @@ module.exports = {
     {
       resolve: "gatsby-plugin-enonic",
       options: {
-        url: "http://localhost:8080/site/default/draft/hmdb/api",
+        api: "http://localhost:8080/site/default/draft/hmdb/api",
+        application: 'com.example.myproject',
         refetchInterval: 10,
         pages: [{
           list: {
-            path: "/movies",
-            template: require.resolve("./src/templates/movies.js")
+            url: "/movies",
+            template: require.resolve("./src/templates/movies.js"),
+            title: 'Movies'
           },
           details: {
-            path: '/movie', // Remove to use list.path
+            url: '/movie', // Remove to use list.path
             template: require.resolve("./src/templates/movie.js"),
-            key: 'name'
+            key: 'name',
+            title: '.displayName'
           },
-          query: '/src/queries/getMovies'
+          query: require.resolve('./src/queries/getMovies')
         }]
       }
     }
@@ -49,14 +52,17 @@ module.exports = {
 }
 ```
 
-* `url` - GraphQL API endpoint of the Headless starter
+* `api` - GraphQL API endpoint of the Headless starter
+* `application` - application name (typically the one delivering headless content), will be used in GraphQL schemas
 * `refetchInterval` - how often data is reloaded (in seconds)
 * `pages.query` - path to a JS file which exports (via `module.exports`) a GraphQL query to retrieve nodes to be listed on the `pages.list.path` page
-* `pages.list.path` - expected path for the generated listing page, for example if you use `movies` the page will be available under `mysite.com/movies`
+* `pages.list.url` - expected path for the generated listing page, for example if you use `movies` the page will be available under `mysite.com/movies`
 * `pages.list.template` - template for the listing page
-* `pages.details.path` - expected path for the generated details page, for example if you use `movie` the page will be available under `mysite.com/movie/{key}` (if omitted, value from `pages.list.path` will be used)
+* `pages.list.title` - title for the listing page (optional)
+* `pages.details.url` - expected path for the generated details page, for example if you use `movie` the page will be available under `mysite.com/movie/{key}` (if omitted, value from `pages.list.path` will be used)
 * `pages.details.key` - field in the query whose value will be added to the details page url (see above)
 * `pages.details.template` - template for the details page
+* `pages.details.title` - title for the details page, if it starts with `.` it means "_use value of this field in the response_"
 
 
 ## Example

@@ -12,18 +12,18 @@ exports.sourceNodes = async (
         ...options
     }
 ) => {
-    const { url, refetchInterval } = options;
+    const { api, refetchInterval } = options;
     const { reporter } = utils;
 
-    if (!url) {
-        reporter.panic(`gatsby-plugin-enonic requires GraphQL API endpoint to be specified (\`options.url\`)`);
+    if (!api) {
+        reporter.panic(`gatsby-plugin-enonic requires GraphQL API endpoint to be specified (\`options.api\`)`);
     }
 
     await gatsbySourceGraphQLNode.sourceNodes(utils, {
         typeName,
         fieldName,
         refetchInterval,
-        url: url
+        url: api
     });
 };
 
@@ -136,7 +136,8 @@ const createCustomPages = async (graphql, createPage, reporter, pageDef, schemaT
             context: {
                 nodes,
                 detailsPageUrl: detailsPageUrl,
-                detailsPageKey: pageDef.details ? pageDef.details.key : null
+                detailsPageKey: pageDef.details ? pageDef.details.key : null,
+                title: pageDef.list.title
             },
         })
     }
@@ -159,7 +160,8 @@ const createCustomPages = async (graphql, createPage, reporter, pageDef, schemaT
                 component: pageDef.details.template,
                 context: {
                     node,
-                    listPageUrl: pageDef.list ? pageDef.list.url : ''
+                    listPageUrl: pageDef.list ? pageDef.list.url : '',
+                    title: pageDef.details.title
                 },
             })
         })
