@@ -1,16 +1,18 @@
 const _ = require(`lodash`);
 const gatsbySourceGraphQLNode = require(`gatsby-source-graphql/gatsby-node`);
+const { parse } = require('graphql');
 
 const schemaName = 'XP';
 const schemaPrefix = `${schemaName}_`;
+const wrapperName = 'guillotine';
 
 exports.sourceNodes = async (
-    utils,
-    {
-        typeName = schemaName,
-        fieldName = schemaName.toLowerCase(),
-        ...options
-    }
+  utils,
+  {
+      typeName = schemaName,
+      fieldName = schemaName.toLowerCase(),
+      ...options
+  }
 ) => {
     const { api, refetchInterval } = options;
     const { reporter } = utils;
@@ -39,9 +41,9 @@ exports.createPages = async ({ graphql, actions, reporter }, options) => {
     const schemaTypes = await getContentTypes(graphql, reporter);
 
     return await Promise.all(
-        pages.map(async pageDef =>
-            await createCustomPages(graphql, createPage, reporter, pageDef, schemaTypes, application)
-        )
+      pages.map(async pageDef =>
+        await createCustomPages(graphql, createPage, reporter, pageDef, schemaTypes, application)
+      )
     )
 };
 
@@ -55,7 +57,7 @@ const processTypesInQuery = async (query, types) => {
 
 const getContentTypes = async (graphql, reporter) => {
     const result = await graphql(
-        `{
+      `{
       __schema {
         types {
           name
@@ -89,6 +91,40 @@ const sanitizeTemplate = (queryTemplate, application) => {
     return result;
 };
 
+const firstOperationDefinition = (ast) => ast.definitions[0];
+
+const firstFieldValueNameFromOperation = (operationDefinition) =>  {
+    return operationDefinition.selectionSet.selections[0].name.value;
+}
+
+const secondFieldValueNameFromOperation = (query) =>  {
+    const parsedQuery = parse(query);
+    const definition = firstOperationDefinition(parsedQuery);
+    return definition.selectionSet.selections[0].selectionSet.selections[0].name.value;
+}
+
+const queryIsWrapped = (query) =>  {
+    const parsedQuery = parse(query);
+
+    const definition = firstOperationDefinition(parsedQuery);
+    const firstFieldName = firstFieldValueNameFromOperation(definition);
+
+    return firstFieldName === wrapperName;
+}
+
+const getWrappedQuery = (query) => {
+    let finalQuery;
+    if (queryIsWrapped(query)) {
+        const fieldName = secondFieldValueNameFromOperation(query);
+
+        finalQuery = `{${schemaName.toLowerCase()} ${query.replace(fieldName, `nodes: ${fieldName}`)}}`
+    } else {
+        finalQuery = `{${schemaName.toLowerCase()} {${wrapperName} {nodes: ${query.replace('{', '')}}}`
+    }
+
+    return finalQuery;
+}
+
 const createCustomPages = async (graphql, createPage, reporter, pageDef, schemaTypes, application) => {
     if (!pageDef.query) {
         reporter.panic('gatsby-plugin-enonic requires query in page definition (`options.pages.query`)')
@@ -101,15 +137,8 @@ const createCustomPages = async (graphql, createPage, reporter, pageDef, schemaT
 
     const sanitizedTemplate = application ? sanitizeTemplate(queryTemplate, application) : queryTemplate;
     const query = await processTypesInQuery(sanitizedTemplate, schemaTypes);
-    const result = await graphql(
-    `{
-      ${schemaName.toLowerCase()} {
-        guillotine {
-            nodes: ${query}
-        }
-      }
-    }`
-    );
+
+    const result = await graphql(getWrappedQuery(query));
 
     if (result.errors) {
         reporter.panic(result.errors);
