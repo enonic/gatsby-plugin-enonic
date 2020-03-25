@@ -59,7 +59,7 @@ module.exports = {
 * `pages.list.url` - expected path for the generated listing page, for example if you use `movies` the page will be available under `mysite.com/movies`
 * `pages.list.template` - template for the listing page
 * `pages.list.title` - title for the listing page (optional)
-* `pages.details.url` - expected path for the generated details page, for example if you use `movie` the page will be available under `mysite.com/movie/{key}` (if omitted, value from `pages.list.path` will be used)
+* `pages.details.url` - expected path for the generated details page, for example if you use `movie` the page will be available under `mysite.com/movie/{key}` (if omitted, value from `pages.list.url` will be used)
 * `pages.details.key` - field in the query whose value will be added to the details page url (see above)
 * `pages.details.template` - template for the details page
 * `pages.details.title` - title for the details page, if it starts with `.` it means "_use value of this field in the response_"
@@ -80,7 +80,7 @@ to inject Enonic Headless starter's GraphQL schema into Gatsby's.
 
 ## Helpful links
 
-- [Enonic Headless starter](https://developer.enonic.com/templates/headless-cms)
-- [Guide to Enonic Headless starter](https://github.com/enonic/starter-headless)
-- [gatsby-plugin-enonic-example](https://github.com/enonic/gatsby-plugin-enonic-example)
+- [Enonic Headless starter](https://github.com/enonic/starter-headless)
+- [Guide to Enonic Headless starter](https://developer.enonic.com/templates/headless-cms)
+- [Sample site using Enonic plugin for Gatsby](https://github.com/enonic/guide-gatsby-starter)
 - [Gatsby documentation](https://www.gatsbyjs.org/)
