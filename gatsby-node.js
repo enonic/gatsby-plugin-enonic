@@ -146,7 +146,8 @@ const createCustomPages = async (graphql, createPage, reporter, pageDef, schemaT
 
     const nodes = result.data.xp.guillotine.nodes;
 
-    const detailsPageUrl = (pageDef.details ? pageDef.details.url : '') || (pageDef.list ? pageDef.list.url : '');
+    const baseDetailsPageUrl = (pageDef.details ? pageDef.details.url : '') || (pageDef.list ? pageDef.list.url : '').trim();
+    const detailsPageUrl = baseDetailsPageUrl.slice(-1) === '/' ? baseDetailsPageUrl.slice(0, -1) : baseDetailsPageUrl;
 
     if (pageDef.list) {
 
@@ -164,7 +165,7 @@ const createCustomPages = async (graphql, createPage, reporter, pageDef, schemaT
             component: pageDef.list.template,
             context: {
                 nodes,
-                detailsPageUrl: detailsPageUrl,
+                detailsPageUrl: pageDef.details ? detailsPageUrl : null,
                 detailsPageKey: pageDef.details ? pageDef.details.key : null,
                 title: pageDef.list.title
             },
