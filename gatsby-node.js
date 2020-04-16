@@ -4,7 +4,6 @@ const { parse } = require('graphql');
 
 const schemaName = 'XP';
 const schemaPrefix = `${schemaName}_`;
-const wrapperName = 'guillotine';
 
 exports.sourceNodes = async (
   utils,
@@ -103,24 +102,18 @@ const secondFieldValueNameFromOperation = (query) =>  {
     return definition.selectionSet.selections[0].selectionSet.selections[0].name.value;
 }
 
-const queryIsWrapped = (query) =>  {
+const getWrapperField = (query) =>  {
     const parsedQuery = parse(query);
 
     const definition = firstOperationDefinition(parsedQuery);
     const firstFieldName = firstFieldValueNameFromOperation(definition);
 
-    return firstFieldName === wrapperName;
+    return firstFieldName;
 }
 
-const getWrappedQuery = (query) => {
-    let finalQuery;
-    if (queryIsWrapped(query)) {
-        const fieldName = secondFieldValueNameFromOperation(query);
-
-        finalQuery = `{${schemaName.toLowerCase()} ${query.replace(fieldName, `nodes: ${fieldName}`)}}`
-    } else {
-        finalQuery = `{${schemaName.toLowerCase()} {${wrapperName} {nodes: ${query.replace('{', '')}}}`
-    }
+const getPreparedQuery = (query) => {
+    const fieldName = secondFieldValueNameFromOperation(query);
+    const finalQuery = `{${schemaName.toLowerCase()} ${query.replace(fieldName, `nodes: ${fieldName}`)}}`;
 
     return finalQuery;
 }
@@ -138,13 +131,19 @@ const createCustomPages = async (graphql, createPage, reporter, pageDef, schemaT
     const sanitizedTemplate = application ? sanitizeTemplate(queryTemplate, application) : queryTemplate;
     const query = await processTypesInQuery(sanitizedTemplate, schemaTypes);
 
-    const result = await graphql(getWrappedQuery(query));
+    const wrapperField = getWrapperField(query);
+
+    if (!wrapperField || wrapperField === 'query') {
+        reporter.panic(`Missing wrapper field in query: ${query}`);
+    }
+
+    const result = await graphql(getPreparedQuery(query));
 
     if (result.errors) {
         reporter.panic(result.errors);
     }
 
-    const nodes = result.data.xp.guillotine.nodes;
+    const nodes = result.data[schemaName.toLowerCase()][wrapperField].nodes;
 
     const baseDetailsPageUrl = (pageDef.details ? pageDef.details.url : '') || (pageDef.list ? pageDef.list.url : '').trim();
     const detailsPageUrl = baseDetailsPageUrl.slice(-1) === '/' ? baseDetailsPageUrl.slice(0, -1) : baseDetailsPageUrl;
