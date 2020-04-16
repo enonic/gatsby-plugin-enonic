@@ -40,8 +40,16 @@ exports.createPages = async ({ graphql, actions, reporter }, options) => {
     const schemaTypes = await getContentTypes(graphql, reporter);
 
     return await Promise.all(
-      pages.map(async pageDef =>
-        await createCustomPages(graphql, createPage, reporter, pageDef, schemaTypes, application)
+      pages.map(async pageDef => {
+
+            validatePageDefinition(pageDef, reporter);
+
+            const query = await prepareQuery(pageDef.query, reporter, schemaTypes, application);
+            const nodes = await fetchDataNodes(query, graphql, reporter);
+
+            await createCustomPages(createPage, nodes, pageDef);
+
+        }
       )
     )
 };
@@ -81,7 +89,7 @@ const getContentTypes = async (graphql, reporter) => {
     return contentInterface.possibleTypes.map(type => type.name.slice(schemaPrefix.length));
 };
 
-const sanitizeTemplate = (queryTemplate, application) => {
+const processPlaceholders = (queryTemplate, application) => {
     const _app = `${application}_`.replace(/\./g, '_');
 
     let result = queryTemplate.replace(/%application%_/, _app); // Replace "%application%_" with "com_example_myproject_"
@@ -94,13 +102,13 @@ const firstOperationDefinition = (ast) => ast.definitions[0];
 
 const firstFieldValueNameFromOperation = (operationDefinition) =>  {
     return operationDefinition.selectionSet.selections[0].name.value;
-}
+};
 
 const secondFieldValueNameFromOperation = (query) =>  {
     const parsedQuery = parse(query);
     const definition = firstOperationDefinition(parsedQuery);
     return definition.selectionSet.selections[0].selectionSet.selections[0].name.value;
-}
+};
 
 const getWrapperField = (query) =>  {
     const parsedQuery = parse(query);
@@ -109,27 +117,29 @@ const getWrapperField = (query) =>  {
     const firstFieldName = firstFieldValueNameFromOperation(definition);
 
     return firstFieldName;
-}
+};
 
-const getPreparedQuery = (query) => {
+const wrapQuery = (query) => {
     const fieldName = secondFieldValueNameFromOperation(query);
-    const finalQuery = `{${schemaName.toLowerCase()} ${query.replace(fieldName, `nodes: ${fieldName}`)}}`;
+    const wrappedQuery = `{${schemaName.toLowerCase()} ${query.replace(fieldName, `nodes: ${fieldName}`)}}`;
 
-    return finalQuery;
-}
+    return wrappedQuery;
+};
 
-const createCustomPages = async (graphql, createPage, reporter, pageDef, schemaTypes, application) => {
-    if (!pageDef.query) {
-        reporter.panic('gatsby-plugin-enonic requires query in page definition (`options.pages.query`)')
-    }
-    const queryTemplate = require(pageDef.query);
+const prepareQuery = async (queryPath, reporter, schemaTypes, application) => {
+    let query = require(queryPath);
 
-    if (typeof queryTemplate !== 'string' || !queryTemplate.trim()) {
-        reporter.panic(`gatsby-plugin-enonic failed to find query at ${pageDef.query}`);
+    if (typeof query !== 'string' || !query.trim()) {
+        reporter.panic(`gatsby-plugin-enonic failed to find query at ${queryPath}`);
     }
 
-    const sanitizedTemplate = application ? sanitizeTemplate(queryTemplate, application) : queryTemplate;
-    const query = await processTypesInQuery(sanitizedTemplate, schemaTypes);
+    query = application ? await processPlaceholders(query, application) : query; // Replace application placeholders
+    query = await processTypesInQuery(query, schemaTypes);                 // Add "XP_" prefix to content types
+
+    return query;
+};
+
+const fetchDataNodes = async (query, graphql, reporter) => {
 
     const wrapperField = getWrapperField(query);
 
@@ -137,16 +147,19 @@ const createCustomPages = async (graphql, createPage, reporter, pageDef, schemaT
         reporter.panic(`Missing wrapper field in query: ${query}`);
     }
 
-    const result = await graphql(getPreparedQuery(query));
+    const result = await graphql(wrapQuery(query));
 
     if (result.errors) {
         reporter.panic(result.errors);
     }
 
-    const nodes = result.data[schemaName.toLowerCase()][wrapperField].nodes;
+    return result.data[schemaName.toLowerCase()][wrapperField].nodes;
+}
 
-    const baseDetailsPageUrl = (pageDef.details ? pageDef.details.url : '') || (pageDef.list ? pageDef.list.url : '').trim();
-    const detailsPageUrl = baseDetailsPageUrl.slice(-1) === '/' ? baseDetailsPageUrl.slice(0, -1) : baseDetailsPageUrl;
+const validatePageDefinition = (pageDef, reporter) => {
+    if (!pageDef.query) {
+        reporter.panic('gatsby-plugin-enonic requires query in page definition (`options.pages.query`)')
+    }
 
     if (pageDef.list) {
 
@@ -158,43 +171,69 @@ const createCustomPages = async (graphql, createPage, reporter, pageDef, schemaT
             reporter.panic('gatsby-plugin-enonic requires template for the list page (`options.pages.list.template`)');
         }
 
-        // Create node list pages
-        createPage({
-            path: pageDef.list.url,
-            component: pageDef.list.template,
-            context: {
-                nodes,
-                detailsPageUrl: pageDef.details ? detailsPageUrl : null,
-                detailsPageKey: pageDef.details ? pageDef.details.key : null,
-                title: pageDef.list.title
-            },
-        })
     }
 
     if (pageDef.details) {
-
-        if (!pageDef.details.key) {
-            reporter.panic('gatsby-plugin-enonic requires id field for the details page (`options.pages.details.key`)');
-        }
 
         if (!pageDef.details.template) {
             reporter.panic('gatsby-plugin-enonic requires template for the list page (`options.pages.details.template`)');
         }
 
-        // Create individual node pages
-        nodes.forEach(node => {
+    }
+};
 
-            createPage({
-                path: `${detailsPageUrl}/${_.kebabCase(node[pageDef.details.key])}`,
-                component: pageDef.details.template,
-                context: {
-                    node,
-                    listPageUrl: pageDef.list ? pageDef.list.url : '',
-                    title: pageDef.details.title
-                },
-            })
-        })
+const getDetailsPageUrl = (pageDef) => {
+    const baseDetailsPageUrl = (pageDef.details ? pageDef.details.url : '') || (pageDef.list ? pageDef.list.url : '').trim();
+    const detailsPageUrl = baseDetailsPageUrl.slice(-1) === '/' ? baseDetailsPageUrl.slice(0, -1) : baseDetailsPageUrl;
+
+    return detailsPageUrl;
+};
+
+const createListPage = (createPage, nodes, pageDef) => {
+    if (!pageDef.list) {
+        return;
     }
 
-    return result;
+    const key = pageDef.details.key || 'id';
+
+    // Create node list pages
+    createPage({
+        path: pageDef.list.url,
+        component: pageDef.list.template,
+        context: {
+            nodes,
+            detailsPageUrl: pageDef.details ? getDetailsPageUrl(pageDef) : null,
+            detailsPageKey: pageDef.details ? key : null,
+            title: pageDef.list.title
+        },
+    })
+};
+
+const createDetailPages = (createPage, nodes, pageDef) => {
+    if (!pageDef.details) {
+        return;
+    }
+
+    const detailsPageUrl = getDetailsPageUrl(pageDef);
+
+    const key = pageDef.details.key || 'id';
+
+    // Create individual node pages
+    nodes.forEach(node => {
+
+        createPage({
+            path: `${detailsPageUrl}/${_.kebabCase(node[key])}`,
+            component: pageDef.details.template,
+            context: {
+                node,
+                listPageUrl: pageDef.list ? pageDef.list.url : '',
+                title: pageDef.details.title
+            },
+        })
+    })
+};
+
+const createCustomPages = async (createPage, nodes, pageDef) => {
+    createListPage(createPage, nodes, pageDef);
+    createDetailPages(createPage, nodes, pageDef);
 };
