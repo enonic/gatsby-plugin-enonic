@@ -1,5 +1,5 @@
 const _ = require(`lodash`);
-const gatsbySourceGraphQLNode = require(`gatsby-source-graphql/gatsby-node`);
+const { sourceNodes } = require(`gatsby-source-graphql/gatsby-node`);
 const { parse } = require('graphql');
 
 const schemaName = 'XP';
@@ -20,7 +20,7 @@ exports.sourceNodes = async (
         reporter.panic(`gatsby-plugin-enonic requires GraphQL API endpoint to be specified (\`options.api\`)`);
     }
 
-    await gatsbySourceGraphQLNode.sourceNodes(utils, {
+    await sourceNodes(utils, {
         typeName,
         fieldName,
         refetchInterval,

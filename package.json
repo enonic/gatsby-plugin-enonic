@@ -1,6 +1,6 @@
 {
   "name": "gatsby-plugin-enonic",
-  "version": "0.8.0",
+  "version": "0.8.3",
   "description": "GatsbyJS plugin to create static pages for headless content from Enonic XP",
   "author": "Alan Semenov <alan.semenov@gmail.com>",
   "main": "index.js",
@@ -12,14 +12,15 @@
     "url": "https://github.com/enonic/gatsby-plugin-enonic/issues"
   },
   "dependencies": {
-    "gatsby-source-graphql": "^2.1.35",
+    "gatsby-source-graphql": "^2.4.0",
     "lodash": "^4.17.15"
   },
   "peerDependencies": {
-    "gatsby": "^2.0.15"
+    "gatsby": "^2.20.0"
   },
   "engines": {
-    "node": ">=8.0.0"
+    "node": ">= 12.13.1",
+    "npm": ">= 6.12.1"
   },
   "keywords": [
     "gatsby",
