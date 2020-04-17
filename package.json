@@ -1,7 +1,7 @@
 {
   "name": "gatsby-plugin-enonic",
-  "version": "0.7.2",
-  "description": "Gatsby plugin which creates pages for headless content from Enonic XP",
+  "version": "0.8.0",
+  "description": "GatsbyJS plugin to create static pages for headless content from Enonic XP",
   "author": "Alan Semenov <alan.semenov@gmail.com>",
   "main": "index.js",
   "repository": {

@@ -53,22 +53,22 @@ module.exports = {
 ```
 
 * `api` - GraphQL API endpoint of the Headless starter
-* `application` - application name (typically the one delivering headless content), will be used in GraphQL schemas
-* `refetchInterval` - how often data is reloaded (in seconds)
+* `application` (optional) - application name (typically the one delivering headless content), will be used in GraphQL schemas
+* `refetchInterval` (optional) - how often data is reloaded (in seconds)
 * `pages.query` - path to a JS file which exports (via `module.exports`) a GraphQL query to retrieve nodes to be listed on the `pages.list.path` page
 * `pages.list.url` - expected path for the generated listing page, for example if you use `movies` the page will be available under `mysite.com/movies`
 * `pages.list.template` - template for the listing page
-* `pages.list.title` - title for the listing page (optional)
-* `pages.details.url` - expected path for the generated details page, for example if you use `movie` the page will be available under `mysite.com/movie/{key}` (if omitted, value from `pages.list.url` will be used)
-* `pages.details.key` - field in the query whose value will be added to the details page url (see above)
+* `pages.list.title` (optional) - title for the listing page
+* `pages.details.url` (optional) - expected path for the generated details page, for example if you use `movie` the page will be available under `mysite.com/movie/{key}` (if omitted, value from `pages.list.url` will be used)
+* `pages.details.key` (optional) - field in the query whose value will be added to the details page url (see above); if omitted, `id` field will be used
 * `pages.details.template` - template for the details page
-* `pages.details.title` - title for the details page, if it starts with `.` it means "_use value of this field in the response_"
+* `pages.details.title` (optional) - title for the details page, if it starts with `.` it means "_use value of this field in the response_"
 
 
 ## Example
 
 For a working example of `gatsby-plugin-enonic`, see
-[gatsby-plugin-enonic-example](https://github.com/enonic/gatsby-plugin-enonic-example).
+[Gatsby plugin guide](https://github.com/enonic/guide-gatsby-starter).
 
 
 ## Thanks
