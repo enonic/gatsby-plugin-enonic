@@ -217,12 +217,13 @@ const createDetailPages = (createPage, nodes, pageDef) => {
     const detailsPageUrl = getDetailsPageUrl(pageDef);
 
     const key = pageDef.details.key || 'id';
+    const sanitizeKey = pageDef.details.sanitizeKey === true;
 
     // Create individual node pages
     nodes.forEach(node => {
-
+        const keyValue = sanitizeKey ? _.kebabCase(node[key]) : node[key];
         createPage({
-            path: `${detailsPageUrl}/${_.kebabCase(node[key])}`,
+            path: `${detailsPageUrl}/${keyValue}`,
             component: pageDef.details.template,
             context: {
                 node,
