@@ -52,55 +52,55 @@ module.exports = {
 
 ### options
 
-####api
+#### api
 GraphQL API endpoint delivering headless content.
 
 
-####refetchInterval
+#### refetchInterval
 _(optional)_
 
 How often data is re-fetched from the server (in seconds).
 
 
-####pages.query
+#### pages.query
 
 Relative path to a Javascript file which exports (via `module.exports`) a GraphQL query to retrieve nodes to be listed on the `pages.list.path` page. Must be resolved with `require.resolve()`.
 
 
-####pages.list.url
+#### pages.list.url
 
 Expected URL for the generated listing page, for example if you use `movies` the page will be available under `mysite.com/movies`. Will also be used for detail pages if `pages.details.url` is not provided.
 
 
-####pages.list.template
+#### pages.list.template
 
 Relative path to React template of the listing page. Must be resolved with `require.resolve()`.
 
 
-####pages.list.title
+#### pages.list.title
 _(optional)_
 
 Page title for the listing page.
 
 
-####pages.details.url
+#### pages.details.url
 _(optional)_
 
 Expected URL for the generated details page, for example if you use `movie` the page will be available under `mysite.com/movie/{key}`. If omitted, value from `pages.list.url` will be used.
 
 
-####pages.details.key
+#### pages.details.key
 _(optional)_
 
 Field in the query whose value will be appended to `pages.details.url`. If omitted, `id` field will be used.
 
 
-####pages.details.template
+#### pages.details.template
 
 Relative path to React template of the detail page. Must be resolved with `require.resolve()`.
 
 
-####pages.details.title
+#### pages.details.title
 _(optional)_
 
 Page title for the detail page.
