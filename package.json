@@ -12,7 +12,7 @@
     "url": "https://github.com/enonic/gatsby-plugin-enonic/issues"
   },
   "dependencies": {
-    "gatsby-source-graphql": "^3.2.0",
+    "gatsby-source-graphql": "^4.7.0",
     "lodash": "^4.17.19"
   },
   "peerDependencies": {
