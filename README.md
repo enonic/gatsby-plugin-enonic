@@ -28,7 +28,7 @@ module.exports = {
     {
       resolve: "gatsby-plugin-enonic",
       options: {
-        api: "http://localhost:8080/site/default/draft/hmdb/api",
+        api: "http://localhost:8080/site/hmdb/draft/hmdb/_graphql",
         refetchInterval: 30,
         pages: [{
           query: require.resolve('./src/queries/getMovies'),
