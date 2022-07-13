@@ -1,17 +1,13 @@
 const _ = require(`lodash`);
-const { sourceNodes } = require(`gatsby-source-graphql/gatsby-node`);
+const { sourceNodes, createSchemaCustomization } = require(`gatsby-source-graphql/gatsby-node`);
 const { parse } = require('graphql');
 
 const schemaName = 'XP';
 const schemaPrefix = `${schemaName}_`;
 
 exports.sourceNodes = async (
-  utils,
-  {
-      typeName = schemaName,
-      fieldName = schemaName.toLowerCase(),
-      ...options
-  }
+    utils,
+    options
 ) => {
     const { api, refetchInterval } = options;
     const { reporter } = utils;
@@ -20,11 +16,19 @@ exports.sourceNodes = async (
         reporter.panic(`gatsby-plugin-enonic requires GraphQL API endpoint to be specified (\`options.api\`)`);
     }
 
+    const typeName = schemaName;
+    const fieldName = schemaName.toLowerCase();
+
+    await createSchemaCustomization(utils, {
+        url: api,
+        typeName,
+        fieldName,
+    });
+
     await sourceNodes(utils, {
         typeName,
         fieldName,
-        refetchInterval,
-        url: api
+        refetchInterval
     });
 };
 
@@ -32,7 +36,7 @@ exports.sourceNodes = async (
 exports.createPages = async ({ graphql, actions, reporter }, options) => {
     const { application, pages } = options;
 
-    if (!pages || !pages.length) {
+    if (!pages || !pages.length){
         reporter.panic(`gatsby-plugin-enonic requires at least one page definition to be specified (\`options.pages\`)`);
     }
 
